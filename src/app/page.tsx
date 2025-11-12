@@ -1,18 +1,18 @@
-import { Button } from "@/components/ui/button";
-import prisma from "@/lib/db";
-
+import { getQueryClient, trpc } from "@/trpc/server";
+import { Client } from "./client";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { Suspense } from "react";
 
 const Page = async () => {
-   const users = await prisma.user.findMany();
+  const queryClient = getQueryClient();
+  void queryClient.prefetchQuery(trpc.getUsers.queryOptions());
   return (
     <div className="text-red-500 text-center">
-    <h1 className="text-6xl font-bold">
-          Hello world! This is Next.js
-          <br />
-          <Button className="ml-4">Click Me</Button>
-          <br />
-          {JSON.stringify(users)}
-    </h1>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+       <Suspense fallback={<div>Loading client...</div>}>
+          <Client />
+       </Suspense>
+      </HydrationBoundary>
     </div>
   );
 };
